@@ -1,0 +1,4 @@
+deployments:
+  wp-erp:
+    always_build_images: yes
+    vm_size: 1GB
