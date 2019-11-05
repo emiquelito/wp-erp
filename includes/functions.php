@@ -281,7 +281,13 @@ function erp_get_currencies_dropdown( $selected = '' ) {
  * @return string
  */
 function erp_get_currency() {
-    return erp_get_option( 'erp_currency', 'erp_settings_general', 'USD' );
+    global $wpdb;
+
+    $erp_currency = erp_get_option( 'erp_currency', 'erp_settings_general', 'USD' );
+
+    $sql = $wpdb->prepare( "SELECT name FROM {$wpdb->prefix}erp_acct_currency_info WHERE id = %d", $erp_currency );
+
+    return $wpdb->get_var( $sql );
 }
 
 
@@ -3119,7 +3125,11 @@ function erp_build_mega_menu( $items, $active, $component, $dropdown = false ) {
     }
     foreach ( $items as $item ) {
 
-        $link = add_query_arg( [ 'page' => 'erp-'.$component, 'section' => $item['slug'] ], admin_url( 'admin.php' ) );
+        if ( $component === 'accounting' ) {
+            $link = add_query_arg( [ 'page' => 'erp-'.$component . '#/' . $item['slug'] ], admin_url( 'admin.php' ) );
+        } else {
+            $link = add_query_arg( [ 'page' => 'erp-'.$component, 'section' => $item['slug'] ], admin_url( 'admin.php' ) );
+        }
 
         $class = $active == $item['slug'] ? 'active ' : '';
         if ( $dropdown ) {

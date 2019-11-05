@@ -17,7 +17,18 @@
                         <!-- end modal body title -->
                         <form action="" method="post" class="modal-form edit-customer-modal" @submit.prevent="saveCustomer">
                             <div class="wperp-modal-body">
-                                <!-- add new product form -->
+                                <!-- add new people form -->
+                                <upload-image
+                                    :showButton="true"
+                                    @uploadedImage="uploadPhoto"
+                                    :src="peopleFields.photo" />
+
+                                <component
+                                    v-for="(component, extIndx) in extraFieldsTop"
+                                    :key="`top-${extIndx}`"
+                                    :is="component"
+                                />
+
                                 <div class="wperp-row wperp-gutter-20">
                                     <div class="wperp-form-group wperp-col-sm-6 wperp-col-xs-12">
                                         <label for="first_name">{{ __('First Name', 'erp') }} <span class="wperp-required-sign">*</span></label>
@@ -31,22 +42,28 @@
                                         <label for="email">{{ __('Email', 'erp') }} <span class="wperp-required-sign">*</span></label>
                                         <input type="email" @blur="checkEmailExistence" v-model="peopleFields.email" id="email" class="wperp-form-field" placeholder="you@domain.com" required>
                                     </div>
-                                    <div class="wperp-form-group wperp-col-sm-6 wperp-col-xs-12">
-                                        <label for="mobile">{{ __('Mobile', 'erp') }}</label>
-                                        <input type="tel" v-model="peopleFields.mobile" id="mobile" class="wperp-form-field">
+                                    <div class="wperp-col-sm-6 wperp-col-xs-12 wperp-form-group">
+                                        <label for="phone">{{ __('Phone', 'erp') }}</label>
+                                        <input type="tel" v-model="peopleFields.phone" id="phone" class="wperp-form-field" placeholder="(123) 456-789">
+                                    </div>
+                                    <div class="wperp-col-sm-6 wperp-col-xs-12 wperp-form-group">
+                                        <label for="company">{{ __('Company', 'erp') }}</label>
+                                        <input type="text" v-model="peopleFields.company" id="company" class="wperp-form-field" :placeholder="__('ABC Corporation', 'erp')">
                                     </div>
                                 </div>
+
+                                <component
+                                    v-for="(component, extIndx) in extraFieldsMiddle"
+                                    :key="`middle-${extIndx}`"
+                                    :is="component"
+                                />
 
                                 <!-- extra fields -->
                                 <div class="wperp-more-fields" v-if="showMore">
                                     <div class="wperp-row wperp-gutter-20">
-                                        <div class="wperp-col-sm-6 wperp-col-xs-12 wperp-form-group">
-                                            <label for="company">{{ __('Company', 'erp') }}</label>
-                                            <input type="text" v-model="peopleFields.company" id="company" class="wperp-form-field" :placeholder="__('ABC Corporation', 'erp')">
-                                        </div>
-                                        <div class="wperp-col-sm-6 wperp-col-xs-12 wperp-form-group">
-                                            <label for="phone">{{ __('Phone', 'erp') }}</label>
-                                            <input type="tel" v-model="peopleFields.phone" id="phone" class="wperp-form-field" placeholder="(123) 456-789">
+                                        <div class="wperp-form-group wperp-col-sm-6 wperp-col-xs-12">
+                                            <label for="mobile">{{ __('Mobile', 'erp') }}</label>
+                                            <input type="tel" v-model="peopleFields.mobile" id="mobile" class="wperp-form-field">
                                         </div>
                                         <div class="wperp-col-sm-6 wperp-col-xs-12 wperp-form-group">
                                             <label for="website">{{ __('Website', 'erp') }}</label>
@@ -92,10 +109,16 @@
                                         </div>
                                         <div class="wperp-col-sm-6 wperp-col-xs-12 wperp-form-group">
                                             <label for="post_code">{{ __('Post Code', 'erp') }}</label>
-                                            <input type="text" v-model="peopleFields.postal_code" id="post_code" class="wperp-form-field" :placeholder="__('Post Code', 'erp')">
+                                            <input type="number" v-model="peopleFields.postal_code" id="post_code" class="wperp-form-field" :placeholder="__('Post Code', 'erp')">
                                         </div>
                                     </div>
                                 </div>
+
+                                <component
+                                    v-for="(component, extIndx) in extraFieldsBottom"
+                                    :key="`bottom-${extIndx}`"
+                                    :is="component"
+                                />
 
                                 <div class="form-check">
                                     <label class="form-check-label mb-0" for="show_more">
@@ -125,13 +148,18 @@
 
 <script>
 import HTTP from 'admin/http';
+import UploadImage from 'admin/components/base/Media.vue';
 import MultiSelect from 'admin/components/select/MultiSelect.vue';
 
+/* global erp_acct_var */
 export default {
     name: 'CustomerModal',
+
     components: {
+        UploadImage,
         MultiSelect
     },
+
     props: {
         people: {
             type: Object
@@ -141,6 +169,7 @@ export default {
         },
         type: [String]
     },
+
     data() {
         return {
             peopleFields: {
@@ -159,20 +188,40 @@ export default {
                 city       : '',
                 country    : '',
                 state      : '',
-                postal_code: ''
+                postal_code: '',
+                photo_id   : null,
+                photo      : erp_acct_var.erp_assets + '/images/mystery-person.png'
             },
-            states       : [],
-            emailExists  : false,
-            showMore     : false,
-            customers    : [],
-            url          : '',
-            error_message: [],
-            countries    : [],
-            get_states   : []
+            states           : [],
+            emailExists      : false,
+            showMore         : false,
+            customers        : [],
+            url              : '',
+            error_message    : [],
+            countries        : [],
+            get_states       : [],
+            extraFieldsTop   : window.acct.hooks.applyFilters('acctPeopleExtraFieldsTop', []),
+            extraFieldsMiddle: window.acct.hooks.applyFilters('acctPeopleExtraFieldsMiddle', []),
+            extraFieldsBottom: window.acct.hooks.applyFilters('acctPeopleExtraFieldsBottom', [])
         };
     },
+
+    created() {
+        this.url = this.generateUrl();
+        this.selectedCountry();
+        this.setInputField();
+        this.getCustomers();
+        this.getCountries();
+    },
+
+    mounted() {
+        window.acct.hooks.doAction('acctPeopleID', this.peopleFields.id);
+    },
+
     methods: {
         saveCustomer() {
+            const peopleFields = window.acct.hooks.applyFilters('acctPeopleFieldsData', this.peopleFields);
+
             if (!this.checkForm()) {
                 return false;
             }
@@ -186,13 +235,13 @@ export default {
                 url = this.url;
                 type = 'post';
             } else {
-                url = this.url + '/' + this.peopleFields.id;
+                url = this.url + '/' + peopleFields.id;
                 type = 'put';
             }
 
             var message = (type === 'post') ? 'Created' : 'Updated';
 
-            HTTP[type](url, this.peopleFields).then(response => {
+            HTTP[type](url, peopleFields).then(response => {
                 this.$root.$emit('peopleUpdate');
                 this.resetForm();
                 this.$store.dispatch('spinner/setSpinner', false);
@@ -201,7 +250,11 @@ export default {
         },
 
         checkForm() {
-            this.error_message = [];
+            this.error_message = window.acct.hooks.applyFilters('acctPeopleFieldsError', []);
+
+            if (this.error_message.length) {
+                return false;
+            }
 
             if (this.emailExists) {
                 this.error_message.push('Email already exists as customer/vendor');
@@ -252,6 +305,10 @@ export default {
             });
         },
 
+        uploadPhoto(image) {
+            this.peopleFields.photo_id = image.id;
+        },
+
         getState(country) {
             this.states = [];
             this.peopleFields.state = '';
@@ -299,6 +356,10 @@ export default {
                 this.peopleFields.country     = this.selectedCountry(people.billing.country);
                 this.peopleFields.state       = this.selectedState(people.billing.state);
                 this.peopleFields.postal_code = people.billing.postal_code;
+
+                if (people.photo) {
+                    this.peopleFields.photo = people.photo;
+                }
             }
         },
 
@@ -346,20 +407,46 @@ export default {
             this.peopleFields.state      = '';
             this.peopleFields.post_code  = '';
         }
-    },
-
-    created() {
-        this.url = this.generateUrl();
-        this.selectedCountry();
-        this.setInputField();
-        this.getCustomers();
-        this.getCountries();
     }
+
 };
 </script>
 
 <style lang="less">
     #people-modal {
+        .erp-upload-image {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: auto;
+            float: left;
+            margin-right: 10px;
+
+            img {
+                width: 200px;
+            }
+
+            button {
+                margin-top: 20px;
+                width: 200px;
+            }
+        }
+
+        .wperp-more-fields {
+            margin-top: 20px;
+        }
+
+        .form-check {
+            display: inline-block;
+            padding-left: 0;
+            margin-top: 15px;
+
+            .form-check-label .field-label {
+                width: 100px;
+                display: block;
+            }
+        }
+
         .errors {
             margin: 0 20px;
             color: #f44336;

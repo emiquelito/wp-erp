@@ -70,6 +70,24 @@
                                 </table>
                             </div>
                         </div>
+                        <div class="wperp-row" v-if="null != expense_data.check_data">
+                            <div class="wperp-col-sm-12">
+                                <table>
+                                    <tr>
+                                        <th>{{ __('Check No', 'erp') }}:</th>
+                                        <td>#{{ expense_data.check_data.check_no }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ __('Bank Name', 'erp') }}:</th>
+                                        <td>{{ expense_data.check_data.bank }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>{{ __('Pay To', 'erp') }}:</th>
+                                        <td>{{ expense_data.check_data.pay_to }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="wperp-invoice-table" v-if="null != expense_data">
@@ -105,6 +123,8 @@
 
                 </div>
 
+                <trans-particulars :particulars="expense_data.particulars" />
+
                 <div class="invoice-attachments d-print-none">
                     <h4>{{ __('Attachments', 'erp') }}</h4>
                     <a class="attachment-item" :href="attachment"
@@ -127,25 +147,27 @@
 import HTTP from 'admin/http';
 import SendMail from 'admin/components/email/SendMail.vue';
 import Dropdown from 'admin/components/base/Dropdown.vue';
+import TransParticulars from 'admin/components/transactions/TransParticulars.vue';
 
 export default {
     name: 'ExpenseSingle',
 
     components: {
         SendMail,
-        Dropdown
+        Dropdown,
+        TransParticulars
     },
 
     data() {
         return {
-            company : null,
-            expense_data : {},
-            isWorking : false,
-            acct_var : erp_acct_var, /* global erp_acct_var */
-            print_data : null,
-            type       : 'expense',
-            showModal  : false,
-            people_id  : null
+            company     : null,
+            expense_data: {},
+            isWorking   : false,
+            acct_var    : erp_acct_var,   /* global erp_acct_var */
+            print_data  : null,
+            type        : 'expense',
+            showModal   : false,
+            people_id   : null
         };
     },
 

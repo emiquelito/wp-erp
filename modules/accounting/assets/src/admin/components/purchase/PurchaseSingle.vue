@@ -111,6 +111,8 @@
 
                 </div>
 
+                <trans-particulars :particulars="purchase.particulars" />
+
                 <div class="invoice-attachments d-print-none">
                     <h4>{{ __('Attachments', 'erp') }}</h4>
                     <a class="attachment-item" :href="attachment"
@@ -133,25 +135,27 @@
 import HTTP from 'admin/http';
 import SendMail from 'admin/components/email/SendMail.vue';
 import Dropdown from 'admin/components/base/Dropdown.vue';
+import TransParticulars from 'admin/components/transactions/TransParticulars.vue';
 
 export default {
     name: 'PurchaseSingle',
 
     components: {
         SendMail,
-        Dropdown
+        Dropdown,
+        TransParticulars
     },
 
     data() {
         return {
-            company  : null,
-            purchase : {},
-            isWorking: false,
-            acct_var : erp_acct_var, /* global erp_acct_var */
-            print_data : null,
-            type       : 'purchase',
-            showModal  : false,
-            people_id  : null
+            company   : null,
+            purchase  : {},
+            isWorking : false,
+            acct_var  : erp_acct_var,   /* global erp_acct_var */
+            print_data: null,
+            type      : 'purchase',
+            showModal : false,
+            people_id : null
         };
     },
 

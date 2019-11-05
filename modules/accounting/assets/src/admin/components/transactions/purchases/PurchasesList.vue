@@ -77,7 +77,7 @@
 <script>
 import HTTP from 'admin/http';
 import ListTable from 'admin/components/list-table/ListTable.vue';
-
+/* global __ */
 export default {
     name: 'PurchaseList',
 
@@ -88,16 +88,16 @@ export default {
     data() {
         return {
             columns       : {
-                trn_no       : {label: 'Voucher No.'},
-                type         : {label: 'Type'},
-                ref          : {label: 'Ref'},
-                customer_name: {label: 'Customer'},
-                trn_date     : {label: 'Trn Date'},
-                due_date     : {label: 'Due Date'},
-                due          : {label: 'Due'},
-                amount       : {label: 'Total'},
-                status       : {label: 'Status'},
-                actions      : {label: ''}
+                trn_no       : { label: 'Voucher No.' },
+                type         : { label: 'Type' },
+                ref          : { label: 'Ref' },
+                customer_name: { label: 'Customer' },
+                trn_date     : { label: 'Trn Date' },
+                due_date     : { label: 'Due Date' },
+                due          : { label: 'Due' },
+                amount       : { label: 'Total' },
+                status       : { label: 'Status' },
+                actions      : { label: '' }
 
             },
             listLoading   : false,
@@ -105,7 +105,7 @@ export default {
             paginationData: {
                 totalItems : 0,
                 totalPages : 0,
-                perPage    : 10,
+                perPage    : 20,
                 currentPage: this.$route.params.page === undefined ? 1 : parseInt(this.$route.params.page)
             },
             actions       : [],
@@ -118,7 +118,7 @@ export default {
         this.$root.$on('transactions-filter', filters => {
             this.$router.push({
                 path : '/transactions/purchases',
-                query: {start: filters.start_date, end: filters.end_date, status: filters.status}
+                query: { start: filters.start_date, end: filters.end_date, status: filters.status }
             });
             this.fetchItems(filters);
             this.fetched = true;
@@ -140,9 +140,9 @@ export default {
         }
     },
 
-    watch: {
-        $route: 'fetchItems'
-    },
+    // watch: {
+    //     $route: 'fetchItems'
+    // },
 
     methods: {
         fetchItems(filters = {}) {
@@ -161,24 +161,30 @@ export default {
                 const mappedData = response.data.map(item => {
                     if (item.purchase_order === '1' || item.status_code === '1') {
                         item['actions'] = [
-                            {key: 'edit', label: 'Edit'}
+                            { key: 'edit', label: 'Edit' },
+                            { key: 'to_purchase', label: 'Make Purchase' }
+                        ];
+                    } else if (item.status_code === '8') {
+                        item['actions'] = [
+                            { key: '#', label: __('No actions found', 'erp') }
                         ];
                     } else if (item.type === 'purchase') {
                         if (item.status_code === '7') {
                             delete item['actions'];
                         } else if (item.status_code === '2' || item.status_code === '3' || item.status_code === '5') {
                             item['actions'] = [
-                                {key: 'edit', label: __('Edit', 'erp')},
-                                {key: 'payment', label: __('Make Payment', 'erp')}
+                                { key: 'payment', label: __('Make Payment', 'erp') },
+                                { key: 'edit', label: __('Edit', 'erp') },
+                                { key: 'void', label: 'Void' }
                             ];
                         } else {
                             item['actions'] = [
-                                {key: '#', label: __('No actions found', 'erp')}
+                                { key: 'void', label: 'Void' }
                             ];
                         }
                     } else {
                         item['actions'] = [
-                            {key: '#', label: __('No actions found', 'erp')}
+                            { key: '#', label: __('No actions found', 'erp') }
                         ];
                     }
 
@@ -201,45 +207,70 @@ export default {
 
         onActionClick(action, row, index) {
             switch (action) {
-                case 'trash':
-                    if (confirm('Are you sure to delete?')) {
-                        HTTP.delete('purchases/' + row.id).then(response => {
-                            this.$delete(this.rows, index);
+            case 'trash':
+                if (confirm('Are you sure to delete?')) {
+                    HTTP.delete('purchases/' + row.id).then(response => {
+                        this.$delete(this.rows, index);
+                    });
+                }
+                break;
+
+            case 'edit':
+                if (row.type === 'purchase') {
+                    this.$router.push({ name: 'PurchaseEdit', params: { id: row.id } });
+                }
+
+                break;
+
+            case 'payment':
+                if (row.type === 'purchase') {
+                    this.$router.push({
+                        name  : 'PayPurchaseCreate',
+                        params: {
+                            vendor_id  : row.vendor_id,
+                            vendor_name: row.vendor_name
+                        }
+                    });
+                }
+                break;
+
+            case 'void':
+                if (confirm('Are you sure to void the transaction?')) {
+                    if (row.type === 'purchase') {
+                        HTTP.post('purchases/' + row.id + '/void').then(response => {
+                            this.showAlert('success', 'Transaction has been void!');
+                        }).catch(error => {
+                            throw error;
                         });
                     }
-                    break;
-
-                case 'edit':
-                    if (row.type === 'purchase') {
-                        this.$router.push({name: 'PurchaseEdit', params: {id: row.id}});
-                    }
-
-                    break;
-
-                case 'payment':
-                    if (row.type === 'purchase') {
-                        this.$router.push({
-                            name  : 'PayPurchaseCreate',
-                            params: {
-                                vendor_id  : row.vendor_id,
-                                vendor_name: row.vendor_name
-                            }
+                    if (row.type === 'pay_purchase') {
+                        HTTP.post('pay-purchases/' + row.id + '/void').then(response => {
+                            this.showAlert('success', 'Transaction has been void!');
+                        }).then(() => {
+                            this.$router.push({ name: 'Purchases' });
+                        }).catch(error => {
+                            throw error;
                         });
                     }
-                    break;
+                }
+                break;
 
-                default :
+            case 'to_purchase':
+                this.$router.push({ name: 'PurchaseEdit', params: { id: row.id }, query: { convert: true } });
+                break;
+
+            default :
+                break;
             }
         },
 
         goToPage(page) {
-            this.listLoading = true;
-
+            this.listLoading                = true;
             const queries                   = Object.assign({}, this.$route.query);
             this.paginationData.currentPage = page;
             this.$router.push({
                 name  : 'PaginatePurchases',
-                params: {page: page},
+                params: { page: page },
                 query : queries
             });
 
@@ -252,7 +283,7 @@ export default {
 
         getTrnType(row) {
             if (row.type === 'purchase') {
-                if (row.purchase_order === 1) {
+                if (row.purchase_order === '1') {
                     return 'Purchase Order';
                 }
                 return 'Purchase';

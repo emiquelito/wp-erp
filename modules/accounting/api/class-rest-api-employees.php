@@ -32,79 +32,54 @@ class Employees_Controller extends \WeDevs\ERP\API\REST_Controller {
      * Register the routes for the objects of the controller.
      */
     public function register_routes() {
-        register_rest_route( $this->namespace, '/' . $this->rest_base, [
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base,
             [
-                'methods'             => WP_REST_Server::READABLE,
-                'callback'            => [ $this, 'get_employees' ],
-                'args'                => $this->get_collection_params(),
-                'permission_callback' => function( $request ) {
-                    return current_user_can( 'erp_view_list' );
-                },
-            ],
-            [
-                'methods'             => WP_REST_Server::CREATABLE,
-                'callback'            => [ $this, 'create_employee' ],
-                'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
-                'permission_callback' => function( $request ) {
-                    return current_user_can( 'erp_create_employee' );
-                },
-            ],
-            'schema' => [ $this, 'get_public_item_schema' ],
-        ] );
+				[
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => [ $this, 'get_employees' ],
+					'args'                => $this->get_collection_params(),
+					'permission_callback' => function( $request ) {
+						return current_user_can( 'erp_view_list' );
+					},
+				],
+				'schema' => [ $this, 'get_public_item_schema' ],
+			]
+        );
 
-        register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', [
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/(?P<id>[\d]+)',
             [
-                'methods'             => WP_REST_Server::READABLE,
-                'callback'            => [ $this, 'get_employee' ],
-                'args'                => [
-                    'context' => $this->get_context_param( [ 'default' => 'view' ] ),
-                ],
-                'permission_callback' => function( $request ) {
-                    return current_user_can( 'erp_list_employee' );
-                },
-            ],
-            [
-                'methods'             => WP_REST_Server::EDITABLE,
-                'callback'            => [ $this, 'update_employee' ],
-                'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-                'permission_callback' => function( $request ) {
-                    return current_user_can( 'erp_edit_employee', $request['user_id'] );
-                },
-            ],
-            [
-                'methods'             => WP_REST_Server::DELETABLE,
-                'callback'            => [ $this, 'delete_employee' ],
-                'permission_callback' => function( $request ) {
-                    return current_user_can( 'erp_delete_employee' );
-                },
-            ],
-            'schema' => [ $this, 'get_public_item_schema' ],
-        ] );
+				[
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => [ $this, 'get_employee' ],
+					'args'                => [
+						'context' => $this->get_context_param( [ 'default' => 'view' ] ),
+					],
+					'permission_callback' => function( $request ) {
+						return current_user_can( 'erp_list_employee' );
+					},
+				],
+				'schema' => [ $this, 'get_public_item_schema' ],
+			]
+        );
 
-        register_rest_route( $this->namespace, '/' . $this->rest_base . '/delete/(?P<ids>[\d,?]+)', [
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/(?P<id>[\d]+)' . '/transactions',
             [
-                'methods'             => WP_REST_Server::DELETABLE,
-                'callback'            => [ $this, 'bulk_delete_employees' ],
-                'args'                => [
-                    'ids' => [ 'required' => true ]
-                ],
-                'permission_callback' => function( $request ) {
-                    return current_user_can( 'erp_delete_employee' );
-                },
-            ],
-            'schema' => [ $this, 'get_public_item_schema' ],
-        ] );
-
-        register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)' . '/transactions', [
-            [
-                'methods'             => WP_REST_Server::READABLE,
-                'callback'            => [ $this, 'get_transactions' ],
-                'args'                => $this->get_collection_params(),
-                'permission_callback' => function( $request ) {
-                    return current_user_can( 'erp_view_list' );
-                },
-            ],
-        ] );
+				[
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => [ $this, 'get_transactions' ],
+					'args'                => $this->get_collection_params(),
+					'permission_callback' => function( $request ) {
+						return current_user_can( 'erp_view_list' );
+					},
+				],
+			]
+        );
 
     }
 
@@ -125,7 +100,6 @@ class Employees_Controller extends \WeDevs\ERP\API\REST_Controller {
             'location'    => ( $request['location'] ) ? $request['location'] : '-1',
             's'           => ( $request['s'] ) ? $request['s'] : '',
         ];
-
 
         $items = erp_hr_get_employees( $args );
 
@@ -163,16 +137,16 @@ class Employees_Controller extends \WeDevs\ERP\API\REST_Controller {
         $people_id = (int) $request['id'];
         $user_id   = erp_acct_get_user_id_by_people_id( $people_id );
 
-        $employee  = new \WeDevs\ERP\HRM\Employee( $user_id );
-        $item      = (array) erp_get_people( $people_id );
+        $employee = new \WeDevs\ERP\HRM\Employee( $user_id );
+        $item     = (array) erp_get_people( $people_id );
 
         if ( empty( $item['id'] ) ) {
             return new WP_Error( 'rest_employee_invalid_id', __( 'Invalid resource id.' ), [ 'status' => 404 ] );
         }
 
-        $item['designation']  = $employee->get_designation();
-        $item['department']   = $employee->get_department();
-        $item['reporting_to'] = $employee->get_reporting_to();
+        $item['designation']  = $employee->get_designation( 'view' );
+        $item['department']   = $employee->get_department( 'view' );
+        $item['reporting_to'] = $employee->get_reporting_to( 'view' );
         $item['avatar']       = $employee->get_avatar();
 
         $additional_fields['namespace'] = $this->namespace;
@@ -184,114 +158,6 @@ class Employees_Controller extends \WeDevs\ERP\API\REST_Controller {
         $response->set_status( 200 );
 
         return $response;
-    }
-
-    /**
-     * Create an employee
-     *
-     * @param \WP_REST_Request $request
-     *
-     * @return WP_Error|\WP_REST_Request
-     */
-    public function create_employee( $request ) {
-        $item_data = $this->prepare_item_for_database( $request );
-
-        $employee = new \WeDevs\ERP\HRM\Employee( null );
-        $created  = $employee->create_employee( $item_data );
-        if ( is_wp_error( $created ) ) {
-            return $created;
-        }
-
-        $employee                = new \WeDevs\ERP\HRM\Employee( $created->user_id );
-        $item                    = erp_acct_add_employee_as_people( $item_data );
-        $additional_fields['id'] = $item;
-
-        // User Notification
-        if ( isset( $request['user_notification'] ) && $request['user_notification'] == true ) {
-
-            $emailer    = wperp()->emailer->get_email( 'New_Employee_Welcome' );
-            $send_login = isset( $request['login_info'] ) ? true : false;
-
-            if ( is_a( $emailer, '\WeDevs\ERP\Email' ) ) {
-                $emailer->trigger( $employee->get_user_id(), $send_login );
-            }
-        }
-
-        $additional_fields['namespace'] = $this->namespace;
-        $additional_fields['rest_base'] = $this->rest_base;
-        $response                       = $this->prepare_item_for_response( $employee, $request, $additional_fields );
-        $response                       = rest_ensure_response( $response );
-        $response->set_status( 201 );
-
-        return $response;
-    }
-
-    /**
-     * Update an employee
-     *
-     * @param \WP_REST_Request $request
-     *
-     * @return $this|mixed|object|\WP_Error|\WP_REST_Response
-     */
-    public function update_employee( $request ) {
-        $id = (int) $request['user_id'];
-
-        $employee = new \WeDevs\ERP\HRM\Employee( $id );
-        if ( ! $employee ) {
-            return new WP_Error( 'rest_employee_invalid_id', __( 'Invalid resource id.' ), [ 'status' => 400 ] );
-        }
-
-        $data    = $this->prepare_item_for_database( $request );
-        $updated = $employee->update_employee( $data );
-
-        if ( is_wp_error( $updated ) ) {
-            return $updated;
-        }
-
-        $additional_fields['namespace'] = $this->namespace;
-        $additional_fields['rest_base'] = $this->rest_base;
-
-        $updated_user            = new \WeDevs\ERP\HRM\Employee( $updated->user_id );
-        $item                    = erp_acct_add_employee_as_people( $data );
-        $additional_fields['id'] = $item;
-        $response                = $this->prepare_item_for_response( $updated_user, $request, $additional_fields );
-
-        $response = rest_ensure_response( $response );
-        $response->set_status( 200 );
-
-        return $response;
-    }
-
-    /**
-     * Delete an employee
-     *
-     * @param $request
-     *
-     * @return \WP_REST_Response
-     */
-    public function delete_employee( $request ) {
-        $id = (int) $request['user_id'];
-
-        erp_employee_delete( $id );
-        $response = rest_ensure_response( true );
-
-        return new WP_REST_Response( $response, 204 );
-    }
-
-    /**
-     * Bulk Delete employees
-     *
-     * @param $request
-     *
-     * @return WP_REST_Response
-     */
-    public function bulk_delete_employees( $request ) {
-        $ids = (string) $request['ids'];
-
-        erp_employee_delete( explode( ',', $ids ) );
-
-        $response = rest_ensure_response( true );
-        return new WP_REST_Response( $response, 204 );
     }
 
     /**
@@ -319,12 +185,15 @@ class Employees_Controller extends \WeDevs\ERP\API\REST_Controller {
      * @return mixed|object|\WP_REST_Response
      */
     public function prepare_item_for_response( $item, $request = null, $additional_fields = [] ) {
-        $item = $item->data;
+        $item     = $item->data;
+        $employee = new \WeDevs\ERP\HRM\Employee( $item['user_id'] );
 
-        $data              = array_merge( $item['work'], $item['personal'], $additional_fields );
-        $data['user_id']   = $item['user_id'];
-        $data['email']     = $item['user_email'];
-        $data['people_id'] = erp_acct_get_people_id_by_user_id( $item['user_id'] );
+        $data                = array_merge( $item['work'], $item['personal'], $additional_fields );
+        $data['user_id']     = $item['user_id'];
+        $data['email']       = $item['user_email'];
+        $data['people_id']   = erp_acct_get_people_id_by_user_id( $item['user_id'] );
+        $data['department']  = $employee->get_department( 'view' );
+        $data['designation'] = $employee->get_designation( 'view' );
 
         // Wrap the data in a response object
         $response = rest_ensure_response( $data );
@@ -386,7 +255,7 @@ class Employees_Controller extends \WeDevs\ERP\API\REST_Controller {
 
         // optional arguments.
         if ( isset( $request['company'] ) ) {
-            $prepared_item['company'] = isset ( $request['company'] ) ? $request['company'] : $company->name;
+            $prepared_item['company'] = isset( $request['company'] ) ? $request['company'] : $company->name;
         }
 
         if ( isset( $request['user_id'] ) ) {

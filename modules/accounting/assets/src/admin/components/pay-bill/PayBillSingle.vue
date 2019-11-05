@@ -106,6 +106,8 @@
 
                 </div>
 
+                <trans-particulars :particulars="payBill.particulars" />
+
                 <div class="invoice-attachments d-print-none">
                     <h4>{{ __('Attachments', 'erp') }}</h4>
                     <a class="attachment-item" :href="attachment"
@@ -128,13 +130,15 @@
 import HTTP from 'admin/http';
 import SendMail from 'admin/components/email/SendMail.vue';
 import Dropdown from 'admin/components/base/Dropdown.vue';
+import TransParticulars from 'admin/components/transactions/TransParticulars.vue';
 
 export default {
     name: 'PayBillSingle',
 
     components: {
         SendMail,
-        Dropdown
+        Dropdown,
+        TransParticulars
     },
 
     data() {

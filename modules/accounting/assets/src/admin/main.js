@@ -11,6 +11,7 @@ const Vuelidate      = acct_get_lib('Vuelidate');
 const VueClipboards  = acct_get_lib('VueClipboards');
 const commonMixins   = acct_get_lib('commonMixins');
 const i18nMixin      = acct_get_lib('i18nMixin');
+const clickOutside   = acct_get_lib('clickOutside');
 
 // config
 Vue.config.productionTip = false;
@@ -26,28 +27,15 @@ Vue.mixin(commonMixins);
 Vue.mixin(i18nMixin);
 
 // vue click outside directive
-Vue.directive('click-outside', {
-    bind(el, binding, vnode) {
-        const bubble = binding.modifiers.bubble;
-        const handler = e => {
-            if (bubble || (!el.contains(e.target) && el !== e.target)) {
-                binding.value(e);
-            }
-        };
+Vue.directive('click-outside', clickOutside);
 
-        el.__vueClickOutside__ = handler;
-        document.addEventListener('click', handler);
-    },
+const accountingContainer = document.getElementById('erp-accounting');
 
-    unbind(el, binding) {
-        document.removeEventListener('click', el.__vueClickOutside__);
-        el.__vueClickOutside__ = null;
-    }
-});
-
-(() => new Vue({
-    el: '#erp-accounting',
-    router,
-    store,
-    render: h => h(App)
-}))();
+if (accountingContainer !== null) {
+    (() => new Vue({
+        el: '#erp-accounting',
+        router,
+        store,
+        render: h => h(App)
+    }))();
+}

@@ -60,8 +60,8 @@
                     </thead>
                     <tbody>
                         <tr :key="index" v-for="(detail, index) in payment.line_items">
-                            <th>#{{ detail.index }}</th>
-                            <th>#{{ detail.invoice_no }}</th>
+                            <th>#{{ index+1 }}</th>
+                            <th>{{ detail.invoice_no }}</th>
                             <td>{{ moneyFormat( detail.amount ) }}</td>
                         </tr>
                     </tbody>
@@ -80,6 +80,8 @@
 
         </div>
 
+        <trans-particulars :particulars="payment.particulars" />
+
         <div class="invoice-attachments d-print-none">
             <h4>{{ __('Attachments', 'erp') }}</h4>
             <a class="attachment-item" :href="attachment"
@@ -97,8 +99,14 @@
 </template>
 
 <script>
+import TransParticulars from 'admin/components/transactions/TransParticulars.vue';
+
 export default {
     name: 'PaymentSingleContent',
+
+    components: {
+        TransParticulars
+    },
 
     props: {
         payment: {
