@@ -4,12 +4,10 @@ deployments:
       ./.squash/default/docker-compose.yml
     context_path:
       ./.squash/default
-    always_build_images: yes
-    vm_size: 1GB
+    vm_size: 2GB
   wp-erp-preconfigured:
     filename:
       ./.squash/pre-configured/docker-compose.yml
     context_path:
       ./.squash/pre-configured
-    always_build_images: yes
-    vm_size: 1GB
+    vm_size: 2GB
