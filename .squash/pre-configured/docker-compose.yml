@@ -3,7 +3,6 @@ version: '3.7'
 services:
 
   wp-erp:
-    image: wp-erp
     restart: always
     build: .
     ports:
