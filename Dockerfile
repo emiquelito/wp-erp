@@ -1,6 +1,6 @@
 FROM wordpress
 
-ADD . /wp-erp
+COPY . wp-erp
 
 RUN apt-get update && apt-get install -y unzip git sudo && \
     cd /usr/src/wordpress/wp-content/plugins/ && \
