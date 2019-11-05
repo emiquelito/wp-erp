@@ -21,7 +21,7 @@
                         </div>
 
                         <div class="badge-footer wp-ui-highlight">
-                            <a href="<?php echo erp_hr_employee_list_url(); ?>"><?php _e( 'View Employees', 'erp' ); ?></a>
+                            <a href="<?php echo erp_hr_employee_list_url(); ?>"><?php _e( 'View SQUASH', 'erp' ); ?></a>
                         </div>
                     </div><!-- .badge-wrap -->
 
