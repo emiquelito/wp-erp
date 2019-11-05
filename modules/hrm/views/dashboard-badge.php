@@ -44,7 +44,7 @@ $announcements = get_posts( [
             </div>
 
             <div class="count-footer">
-                <a href="<?php echo erp_hr_employee_list_url(); ?>"><?php _e( 'View Employees', 'erp' ); ?></a>
+                <a href="<?php echo erp_hr_employee_list_url(); ?>"><?php _e( 'View Squash', 'erp' ); ?></a>
             </div>
         </li><!-- .count-box -->
 
