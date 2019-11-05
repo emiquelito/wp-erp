@@ -7,7 +7,5 @@ deployments:
     vm_size: 2GB
   wp-erp-preconfigured:
     filename:
-      ./.squash/pre-configured/docker-compose.yml
-    context_path:
-      ./.squash/pre-configured
+      ./docker-compose.yml
     vm_size: 2GB
